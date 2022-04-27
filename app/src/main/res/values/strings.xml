@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">Controller</string>
+    <string name="log_in">Log In</string>
+    <string name="home_heating_and_hot_water_control">Heating Controller</string>
+    <string name="water">Water</string>
+    <string name="heating">Heating</string>
+    <string name="water_off">Water Off</string>
+    <string name="water_on">Water On</string>
+    <string name="heating_on">Heating On</string>
+    <string name="heating_off">Heating Off</string>
+    <string name="offline">Offline</string>
+    <string name="online">Online</string>
+    <string name="controller">Controller:</string>
+    <string name="refresh">Refresh</string>
+    <string name="auth_token">Auth Token</string>
+    <string name="inside">Inside</string>
+    <string name="outside">Outside</string>
+    <string name="weather_icon">Weather Icon</string>
+    <string name="_2_c">2°C</string>
+    <string name="_20_c">20°C</string>
+    <string name="connected">Connected</string>
+    <string name="server">Server:</string>
+    <string name="n_a">n/a</string>
+    <string name="not_connected">Not connected</string>
+    <string name="paste">Paste</string>
+    <string name="controller_config">Controller config</string>
+</resources>
