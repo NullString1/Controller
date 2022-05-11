@@ -20,6 +20,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -63,7 +66,7 @@ public class controlActivity extends AppCompatActivity {
     SharedPreferences.Editor editor;
     OkHttpClient client;
     SwitchMaterial hSwitch, wSwitch;
-    TextView statusLabel, outsideTemp, serverStatus, controllerTV;
+    TextView statusLabel, outsideTemp, serverStatus, controllerTV, insideTemp;
     ImageButton refreshButton;
     ImageView weatherIcon;
     FusedLocationProviderClient flpC;
@@ -82,6 +85,7 @@ public class controlActivity extends AppCompatActivity {
         client = new OkHttpClient();
         hSwitch = findViewById(R.id.heatingSwitch);
         wSwitch = findViewById(R.id.waterSwitch);
+        insideTemp = findViewById(R.id.insideTemp);
         refreshButton = findViewById(R.id.refreshButton);
         statusLabel = findViewById(R.id.controllerStatusLabel);
         weatherIcon = findViewById(R.id.weatherIcon);
@@ -89,6 +93,21 @@ public class controlActivity extends AppCompatActivity {
         weatherCL = findViewById(R.id.weatherCL);
         serverStatus = findViewById(R.id.serverStatus);
         controllerTV = findViewById(R.id.controllerTV);
+        insideTemp.setOnClickListener((l) -> {
+            if(insideTemp.getText().toString().equals(getString(R.string.n_a))) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                LayoutInflater inflater = getLayoutInflater();
+                View v = inflater.inflate(R.layout.alertdialog, null);
+                builder.setView(v)
+                        .setPositiveButton("Yes", (dialogInterface, i) -> {
+                            editor.putString("sensAuthToken", ((EditText) v.findViewById(R.id.sensToken)).getText().toString());
+                            editor.apply();
+                            getState();
+                        })
+                        .setNegativeButton("No", (dialogInterface, i) -> dialogInterface.cancel());
+                builder.show();
+            }
+        });
         controllerTV.setOnClickListener((l) -> {
 
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -96,11 +115,11 @@ public class controlActivity extends AppCompatActivity {
             builder.setMessage("Have you connected to the controller network?");
 
             // add the buttons
-            builder.setPositiveButton("Yes", (DialogInterface.OnClickListener) (dialogInterface, i) -> {
+            builder.setPositiveButton("Yes", (dialogInterface, i) -> {
                 Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://controller.setup"));
                 startActivity(browserIntent);
             });
-            builder.setNegativeButton("No", (DialogInterface.OnClickListener) (dialogInterface, i) ->
+            builder.setNegativeButton("No", (dialogInterface, i) ->
                 startActivity(new Intent(Settings.ACTION_WIFI_SETTINGS)));
 
             // create and show the alert dialog
@@ -309,6 +328,33 @@ public class controlActivity extends AppCompatActivity {
 
             }
         });
+
+        if (!pref.getString("sensAuthToken", "").equals("")) {
+            urlBuilder = Objects.requireNonNull(HttpUrl.parse("https://lon1.blynk.cloud/external/api/get")).newBuilder();
+            urlBuilder.addQueryParameter("token", pref.getString("sensAuthToken", ""));
+            urlBuilder.addQueryParameter("v0", null);
+            url = urlBuilder.build().toString();
+            request = new Request.Builder().url(url).build();
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                    e.printStackTrace();
+                }
+
+                @Override
+                public void onResponse(@NonNull Call call, @NonNull final Response response) throws IOException {
+                    String resStr = Objects.requireNonNull(response.body()).string();
+                    if (resStr.length() > 5){
+                        controlActivity.this.runOnUiThread(() -> insideTemp.setText(R.string.n_a));
+                        return;
+                    }
+                    Log.d(TAG, resStr);
+                    String temperature = resStr + "°C";
+                    Log.d(TAG, "temperature: " + temperature);
+                    controlActivity.this.runOnUiThread(() -> insideTemp.setText(temperature));
+                }
+            });
+        }
     }
 
     private final LocationCallback mLocationCallback = new LocationCallback() {

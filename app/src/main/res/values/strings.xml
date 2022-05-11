@@ -24,4 +24,5 @@
     <string name="not_connected">Not connected</string>
     <string name="paste">Paste</string>
     <string name="controller_config">Controller config</string>
+    <string name="sensor_auth_token">Sensor Auth Token</string>
 </resources>
